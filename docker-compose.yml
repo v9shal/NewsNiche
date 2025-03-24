@@ -1,0 +1,75 @@
+
+services:
+  frontend:
+    build:
+      context: ./f1
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./f1:/app
+      - frontend_node_modules:/app/node_modules
+    depends_on:
+      - backend
+    environment:
+      - VITE_API_URL=http://backend:5000
+    networks:
+      - News-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "7000:7000"
+    volumes:
+      - ./backend:/app
+      - backend_node_modules:/app/node_modules
+    environment:
+      - PORT=7000
+      - NODE_ENV=development
+      - CORS_ORIGINS=http://localhost:5173
+      - DB_HOST=mysql
+      - DB_USER=root
+      - DB_PASSWORD=vishal@43
+      - DB_NAME=noteshub
+      - JWT_SECRET=your_jwt_secret_here
+      
+    env_file:
+      - .env
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - News-network
+
+ 
+  mysql:
+    image: mysql:8.0
+    container_name: mysql-container
+    ports:
+      - "3307:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=NewsNiche
+      - MYSQL_ROOT_HOST=%
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - News-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "mysql", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    command: --default-authentication-plugin=mysql_native_password
+
+
+networks:
+  News-network:
+    driver: bridge
+
+volumes:
+  frontend_node_modules: {}
+  backend_node_modules: {}
+  mysql_data: {}
