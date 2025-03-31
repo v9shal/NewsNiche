@@ -38,10 +38,8 @@ const axios=require("axios");
         try {
           const { username } = req.params;
           
-          // Fetch user's search history keywords
           const keywords = await History.getHistoryOfUser(username);
           
-          // If no search history is found
           if (!keywords || keywords.length === 0) {
             return res.status(200).json({ 
               keywords: [],
@@ -50,10 +48,8 @@ const axios=require("axios");
             });
           }
           
-          // Fetch news articles based on user's search history
           const newsData = await fetchNewsFromAPI(keywords);
           
-          // Return both keywords and news articles
           res.status(200).json({ 
             keywords, 
             news: newsData 

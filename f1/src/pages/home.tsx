@@ -1,10 +1,9 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { Bookmark, BookmarkCheck, Search, Globe, AlertCircle, Loader, Calendar, Tag, SlidersHorizontal, User } from "lucide-react";
+import { Bookmark, BookmarkCheck, Search, Globe, AlertCircle, Loader, Calendar, Tag, SlidersHorizontal } from "lucide-react";
 import { useSelector } from "react-redux";
 import { RootState } from "../store"; 
 import { motion, AnimatePresence } from "framer-motion";
-import { useNavigate } from "react-router-dom";
 
 interface Article {
   id: number;
@@ -57,7 +56,6 @@ const SORT_OPTIONS = [
 ];
 
 const Home = () => {
-  const navigate = useNavigate();
   const [articles, setArticles] = useState<Article[]>([]);
   const [bookmarks, setBookmarks] = useState<string[]>([]);
   const [error, setError] = useState<string>("");
@@ -85,9 +83,6 @@ const Home = () => {
     },
   });
   
-  const goToProfile = () => {
-    navigate('/profile');
-  };
   
   const initialNews = async () => {
     if (!isAuthenticated || !token) {
@@ -246,7 +241,7 @@ const Home = () => {
       setError("Please log in to bookmark articles");
       return;
     }
-
+  
     try {
       if (bookmarks.includes(article.article_id)) {
         await axios.delete(`http://localhost:7000/api/news/bookmarks/${article.article_id}`, getAuthHeaders());
@@ -259,6 +254,7 @@ const Home = () => {
             author: article.author || "",
             url: article.link,
             articleId: article.article_id,
+            description: article.description || "", // Add description for sentiment analysis
           },
           getAuthHeaders()
         );
@@ -290,37 +286,25 @@ const Home = () => {
         {/* Header */}
         <header className="flex justify-between items-center">
           <h1 className="text-3xl font-bold text-cyan-400">News Explorer</h1>
-          <div className="flex items-center gap-4">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={goToProfile}
-              className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-cyan-500 px-4 py-2 rounded-full shadow-lg hover:shadow-cyan-500/30 transition-all duration-200"
-              disabled={!isAuthenticated}
-            >
-              <User size={18} />
-              <span>Profile</span>
-            </motion.button>
-            
-            <div
-              className={`px-4 py-2 rounded-full text-sm font-medium ${
-                isAuthenticated
-                  ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/50"
-                  : "bg-red-500/20 text-red-300 border border-red-500/50"
-              }`}
-            >
-              {isAuthenticated ? (
-                <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></div>
-                  <span>Logged in as {auth.username}</span>
-                </div>
-              ) : (
-                <div className="flex items-center space-x-2">
-                  <div className="w-2 h-2 rounded-full bg-red-400"></div>
-                  <span>Not logged in</span>
-                </div>
-              )}
-            </div>
+          <a href="/profile"> profile</a>
+          <div
+            className={`px-4 py-2 rounded-full text-sm font-medium ${
+              isAuthenticated
+                ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/50"
+                : "bg-red-500/20 text-red-300 border border-red-500/50"
+            }`}
+          >
+            {isAuthenticated ? (
+              <div className="flex items-center space-x-2">
+                <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></div>
+                <span>Logged in as {auth.username}</span>
+              </div>
+            ) : (
+              <div className="flex items-center space-x-2">
+                <div className="w-2 h-2 rounded-full bg-red-400"></div>
+                <span>Not logged in</span>
+              </div>
+            )}
           </div>
         </header>
 

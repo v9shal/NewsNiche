@@ -6,6 +6,8 @@ import { motion } from 'framer-motion';
 const Register = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [age,setAge]=useState("");
+  const [email,setEmail]=useState("");
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
@@ -17,6 +19,8 @@ const Register = () => {
       const response = await axios.post('http://localhost:7000/api/auth/register', {
         username,
         password,
+        email,
+        age
       });
       setMessage('User registered successfully!');
       setTimeout(() => navigate('/login'), 1500);
@@ -83,6 +87,36 @@ const Register = () => {
                 required
                 className="w-full px-4 py-3 bg-gray-900/50 border border-gray-800 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all duration-300 hover:border-cyan-500/50"
                 placeholder="Enter password"
+              />
+            </motion.div>
+            <motion.div
+              initial={{ x: -20, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: 0.4 }}
+            >
+              <label className="block text-sm font-medium text-gray-300 mb-2">Email</label>
+              <input
+                type="text"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="w-full px-4 py-3 bg-gray-900/50 border border-gray-800 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all duration-300 hover:border-cyan-500/50"
+                placeholder="Enter Email"
+              />
+            </motion.div>
+            <motion.div
+              initial={{ x: -20, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: 0.4 }}
+            >
+              <label className="block text-sm font-medium text-gray-300 mb-2">Age</label>
+              <input
+                type="text"
+                value={age}
+                onChange={(e) => setAge(e.target.value)}
+                required
+                className="w-full px-4 py-3 bg-gray-900/50 border border-gray-800 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all duration-300 hover:border-cyan-500/50"
+                placeholder="Enter Age"
               />
             </motion.div>
           </div>

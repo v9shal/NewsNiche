@@ -1,19 +1,21 @@
 const express = require("express");
-const {getUserRecommendations,saveSearch,getHistroy,deleteHistory} = require('../controllers/history');
-const { getBookmark } = require("../controllers/article");
-const { deleteBookmark } = require("../controllers/article");
-
+const {getUserRecommendations, saveSearch, getHistroy, deleteHistory} = require('../controllers/history');
+const { getBookmark, deleteBookmark, getMoodInsights } = require("../controllers/article");
+const authenticateToken = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
- //router.get("/", getBookmarkStatus);
-//router.post("/", addBookmark);
- router.delete("/removeBookmark/:username/:id", deleteBookmark);
+// Bookmark routes
+router.delete("/removeBookmark/:username/:id", deleteBookmark);
 router.get("/getbookmark/:username", getBookmark);
+         
+// History routes
 router.post("/search", saveSearch);
-//router.post('/search', HistoryController.saveSearch);
 router.get('/recommendations/:username', getUserRecommendations);
 router.get('/getHistory/:username', getHistroy);
-router.delete('/deleteHistory/:username/:keyword',deleteHistory)
+router.delete('/deleteHistory/:username/:keyword', deleteHistory);
+
+// New mood insights route
+router.get('/moodInsights/:username', authenticateToken, getMoodInsights);
 
 module.exports = router;

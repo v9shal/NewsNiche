@@ -1,11 +1,12 @@
 const BookMark = require('../models/bookmark');
 const axios = require('axios');
+const sentimentService = require('../services/sentimentService');
 
 class BookMarkController {
   static async fetchLiveNewsByCategory(req, res) {
     try {
       const baseUrl = `https://newsapi.org/v2/top-headlines`;
-      const apiKey = process.env.NEWS_API;
+      const apiKey = '049477071de34a4aa36276a759ca740a';
   
       const { category } = req.query;
       const queryParams = new URLSearchParams({ apiKey });
@@ -78,7 +79,6 @@ class BookMarkController {
         
         if (language) queryParams.append("language", language);
       } 
-      // If search query or dates are specified, use everything endpoint
       else if (q || from || to) {
         baseUrl = `https://newsapi.org/v2/everything`;
         
@@ -87,13 +87,11 @@ class BookMarkController {
         if (from) queryParams.append("from", from);
         if (to) queryParams.append("to", to);
       }
-      // Default to top-headlines with country filter if no specific criteria
       else {
         baseUrl = `https://newsapi.org/v2/top-headlines`;
         queryParams.append("country", "us"); // Default to US news
       }
       
-      // Add sort parameter if provided, otherwise use default
       if (sortBy) {
         queryParams.append("sortBy", sortBy);
       } else if (baseUrl.includes("everything")) {
@@ -131,9 +129,9 @@ class BookMarkController {
     try {
       // Get the user ID from the authenticated user
       const username = req.user.username;
-      const { title, author, articleId } = req.body;
+      const { title, author, articleId, description, url } = req.body;
       
-      if (!title ) {
+      if (!title) {
         return res.status(400).json({ message: "Missing required fields", success: false });
       }
 
@@ -143,11 +141,25 @@ class BookMarkController {
         return res.status(400).json({ message: "Article already bookmarked", success: false });
       }
 
-      const response = await BookMark.createBookmark(username, title, author, articleId);
+      // Analyze sentiment using our service
+      const articleData = { title, description: description || '' };
+      const sentimentAnalysis = sentimentService.analyzeArticle(articleData);
+      
+      const response = await BookMark.createBookmark(
+        username, 
+        title, 
+        author, 
+        articleId,
+        url,
+        sentimentAnalysis.score, 
+        sentimentAnalysis.sentiment
+      );
+      
       res.status(201).json({ 
         message: "Your news article has been saved", 
         success: true, 
-        bookmarkId: response.insertId 
+        bookmarkId: response.insertId,
+        sentiment: sentimentAnalysis
       });
 
     } catch (error) {
@@ -177,16 +189,14 @@ class BookMarkController {
       res.status(500).json({ message: "Internal server error", error: error.message });
     }
   }
-  static async getBookmark(req,res){
+  
+  static async getBookmark(req, res) {
     try {
-      const {username}=req.params;
-      const bookmarks=await BookMark.getNewsByUser(username);
-      res.status(200).json({bookmarks});
-
-      
+      const { username } = req.params;
+      const bookmarks = await BookMark.getNewsByUser(username);
+      res.status(200).json({ bookmarks });
     } catch (error) {
-      res.status(500).json({error: 'Failed to fetch bookmarks'});
-      
+      res.status(500).json({ error: 'Failed to fetch bookmarks' });
     }
   }
 
@@ -201,7 +211,7 @@ class BookMarkController {
         return res.status(400).json({ error: "Invalid bookmark ID" });
       }
   
-     const result=await BookMark.deleteBookmark(username,id);
+     const result = await BookMark.deleteBookmark(username, id);
   
       if (result.affectedRows === 0) {
         return res.status(404).json({ error: "Bookmark not found" });
@@ -214,6 +224,49 @@ class BookMarkController {
     }
   }
   
+  static async getMoodInsights(req, res) {
+    try {
+      const { username } = req.params;
+      
+      // Get mood analysis from bookmarks
+      const moodInsights = await BookMark.getMoodInsights(username);
+      
+      if (!moodInsights || moodInsights.length === 0) {
+        return res.status(200).json({
+          message: "No mood insights available yet",
+          insights: []
+        });
+      }
+      
+      let totalCount = 0;
+      let weightedScore = 0;
+      
+      moodInsights.forEach(mood => {
+        totalCount += mood.count;
+        weightedScore += mood.average_score * mood.count;
+      });
+      
+      const overallScore = totalCount > 0 ? weightedScore / totalCount : 0;
+      
+      let overallMood = 'neutral';
+      if (overallScore > 0.25) overallMood = 'positive';
+      else if (overallScore < -0.25) overallMood = 'negative';
+      
+      res.status(200).json({
+        message: "Mood insights retrieved successfully",
+        insights: moodInsights,
+        overall: {
+          score: parseFloat(overallScore.toFixed(2)),
+          mood: overallMood,
+          totalArticles: totalCount
+        }
+      });
+      
+    } catch (error) {
+      console.error("Error getting mood insights:", error);
+      res.status(500).json({ message: "Failed to retrieve mood insights", error: error.message });
+    }
+  }
 }
 
 module.exports = BookMarkController;

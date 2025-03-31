@@ -7,6 +7,8 @@ class UserModel {
         id INT AUTO_INCREMENT PRIMARY KEY,
         username VARCHAR(255) NOT NULL UNIQUE,
         password VARCHAR(255) NOT NULL,
+        email VARCHAR(255) NOT NULL,
+        age VARCHAR(255) NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
       )
@@ -25,10 +27,10 @@ class UserModel {
   }
 
   // Create a user
-  static async createUser(username, password) {
+  static async createUser(username, password,email,age) {
     const [result] = await pool.query(
-      "INSERT INTO users (username, password) VALUES (?, ?)",
-      [username, password]
+      "INSERT INTO users (username, password,email,age) VALUES (?,?,?, ?)",
+      [username, password,email,age]
     );
     return result;
   }
@@ -51,7 +53,6 @@ class UserModel {
   }
 
   
-  // Get all bookmarked articles for a user
   
 }
 

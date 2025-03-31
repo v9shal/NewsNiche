@@ -9,10 +9,10 @@ const authRoutes = require("./routes/authRoute");
 const newsRoutes = require("./routes/newsRoute");
 const bookMarkRoutes = require("./routes/bookMark");
 const History = require("./models/history");
-// Load environment variables
 
+// Create express app
 const app = express();
-const port =  7000;
+const port = 7000;
 
 // Security headers
 app.use(
@@ -51,21 +51,26 @@ app.get("/api/health", (req, res) => {
   res.status(200).json({ status: "ok", message: "Server is running" });
 });
 
-// Start the server after initializing tables
-const startServer = async () => {
-  try {
-    await UserModel.initTable(); // Initializes users table
-    await BookMark.initTable(); 
-    await History.initTable()// Initialize bookmarks table
-    
-    app.listen(port, () => {
-      console.log(`Server running on port ${port}`);
-      console.log(`API available at http://localhost:${port}/api/`);
-    });
-  } catch (error) {
-    console.error("Server startup failed:", error);
-    process.exit(1);
-  }
-};
+// Export `app` for testing
+module.exports = app;
 
-startServer();
+// Start the server after initializing tables (only when not in test mode)
+if (require.main === module) {
+  const startServer = async () => {
+    try {
+      await UserModel.initTable(); // Initializes users table
+      await BookMark.initTable();
+      await History.initTable(); // Initialize bookmarks table
+
+      app.listen(port, () => {
+        console.log(`Server running on port ${port}`);
+        console.log(`API available at http://localhost:${port}/api/`);
+      });
+    } catch (error) {
+      console.error("Server startup failed:", error);
+      process.exit(1);
+    }
+  };
+
+  startServer();
+}

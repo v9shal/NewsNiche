@@ -5,18 +5,21 @@ const jwt = require('jsonwebtoken');
 class AuthController {
   static async register(req, res) {
     try {
-      const { username, password } = req.body;
-      if (!username || !password) {
+      const { username, password,email,age } = req.body;
+      if (!username || !password || !email || !age) {
         return res.status(400).json({ error: 'Missing required fields' });
       }
-
+      if(age<12)
+      {
+        return res.status(400).json({ error: 'Age should be greater than 12' });
+      }
       const existing = await UserModel.getUserByUsername(username);
       if (existing) {
         return res.status(409).json({ error: 'Username already exists' });
       }
 
       const hashedPassword = await bcrypt.hash(password, 10);
-      const user = await UserModel.createUser(username, hashedPassword);
+      const user = await UserModel.createUser(username, hashedPassword,email,age);
 
       const token = jwt.sign(
         { id: user.insertId, username },
