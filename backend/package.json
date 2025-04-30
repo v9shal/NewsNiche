@@ -10,10 +10,12 @@
     "test": "jest"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.0",
     "axios": "^1.7.9",
     "bcryptjs": "^2.4.3",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
     "express": "^4.21.2",
     "helmet": "^8.0.0",
     "jest-mock-axios": "^4.8.0",

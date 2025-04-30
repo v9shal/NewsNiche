@@ -6,7 +6,7 @@ class BookMarkController {
   static async fetchLiveNewsByCategory(req, res) {
     try {
       const baseUrl = `https://newsapi.org/v2/top-headlines`;
-      const apiKey = '049477071de34a4aa36276a759ca740a';
+      const apiKey = process.env.NEWS_API;
   
       const { category } = req.query;
       const queryParams = new URLSearchParams({ apiKey });
@@ -134,17 +134,18 @@ class BookMarkController {
       if (!title) {
         return res.status(400).json({ message: "Missing required fields", success: false });
       }
-
+  
       // Check if article is already bookmarked
       const isAlreadyBookmarked = await BookMark.isBookmarked(username, title);
       if (isAlreadyBookmarked) {
         return res.status(400).json({ message: "Article already bookmarked", success: false });
       }
-
+  
       // Analyze sentiment using our service
       const articleData = { title, description: description || '' };
-      const sentimentAnalysis = sentimentService.analyzeArticle(articleData);
+      const sentimentAnalysis = await sentimentService.analyzeArticle(articleData);
       
+      // Make sure we're using the correct properties from sentimentAnalysis
       const response = await BookMark.createBookmark(
         username, 
         title, 
@@ -161,12 +162,14 @@ class BookMarkController {
         bookmarkId: response.insertId,
         sentiment: sentimentAnalysis
       });
-
+  
     } catch (error) {
       console.error('Saving error:', error);
       res.status(500).json({ message: 'Internal server error', error: error.message });
     }
   }
+
+    
 
   static async fetchBookmarksByUser(req, res) {
     try {

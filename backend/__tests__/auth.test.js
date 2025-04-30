@@ -12,9 +12,7 @@ describe("Auth API Tests", () => {
     jest.clearAllMocks();
   });
 
-  /*** 1. User Registration ***/
   test("POST /api/auth/register - Successfully registers a new user", async () => {
-    // Mock the UserModel's methods
     UserModel.getUserByUsername = jest.fn().mockResolvedValue(null); // User doesn't exist
     UserModel.createUser = jest.fn().mockResolvedValue({ insertId: 1 }); // Successful creation
     bcrypt.hash = jest.fn().mockResolvedValue("hashedpassword123");
@@ -38,13 +36,11 @@ describe("Auth API Tests", () => {
       "testuser@example.com",
       25
     );
-    // Check that a cookie was set
     expect(res.headers['set-cookie']).toBeDefined();
     expect(res.headers['set-cookie'][0]).toContain('authToken');
   });
 
   test("POST /api/auth/register - Returns error if username already exists", async () => {
-    // Mock that user already exists
     UserModel.getUserByUsername = jest.fn().mockResolvedValue({ id: 1, username: "testuser" });
 
     const res = await request(app)
@@ -87,7 +83,6 @@ describe("Auth API Tests", () => {
     expect(res.body.error).toBe("Age should be greater than 12");
   });
 
-  /*** 2. User Login ***/
   test("POST /api/auth/login - Successfully logs in a user", async () => {
     // Mock user found with correct password
     UserModel.getUserByUsername = jest.fn().mockResolvedValue({
